@@ -29,6 +29,7 @@ movies_description = pd.read_csv(movies_file, delimiter=';', dtype={'movieID':'i
 users_description = pd.read_csv(users_file, delimiter=';', dtype={'userID':'int', 'gender':'str', 'age':'int', 'profession':'int'}, names=['userID', 'gender', 'age', 'profession'])
 ratings_description = pd.read_csv(ratings_file, delimiter=';', dtype={'userID':'int', 'movieID':'int', 'rating':'int'}, names=['userID', 'movieID', 'rating'])
 predictions_description = pd.read_csv(predictions_file, delimiter=';', names=['userID', 'movieID'], header=None)
+similarity = pd.read_csv(similarity_file, delimiter=',', header=None)
 
 #####
 ##
@@ -41,34 +42,49 @@ def predict_collaborative_filtering(movies, users, ratings, predictions):
     matrix = ratings.pivot_table(index='userID', values='rating', columns='movieID')
 
     mean = ratings.pivot_table(index='userID', values='rating').rename(columns={"rating": "mean"})
-    ratings = pd.merge(ratings, mean, on='userID')
-    ratings['rating'] -= ratings['mean']
-    ratings.drop(columns=['mean'])
-    normalized_matrix = ratings.pivot_table(index='userID', values='rating', columns='movieID').fillna(0)
+    merged = pd.merge(ratings, mean, on='userID')
+    merged['rating'] -= merged['mean']
+    merged.drop(columns=['mean'])
+    normalized_matrix = merged.pivot_table(index='userID', values='rating', columns='movieID').fillna(0).astype('float64')
 
-    print("Creating similarity matrix")
     # matrix.set_index('userID')
-    normalized_matrix = normalized_matrix.to_numpy()
-    matrix = matrix.to_numpy()
-    similarity_matrix = np.zeros((normalized_matrix.shape[0], normalized_matrix.shape[0]))
+
+    # normalized_matrix = normalized_matrix.to_numpy()[:3]
     start = time.perf_counter()
 
-    for idx, x in enumerate(normalized_matrix):
-        for idx2, y in enumerate(normalized_matrix):
-            if idx <= idx2:
-                similarity_matrix[idx, idx2] = np.dot(x, y) / (np.linalg.norm(x) * np.linalg.norm(y))
-    end = time.perf_counter()
-    print("Time taken: ", round(end - start), " seconds")
+    print("Calculating lengths")
 
-    with open(similarity_file, 'w') as sim_writer:
-        sim = [map(str, row) for row in similarity_matrix]
-        sim = [','.join(row) for row in sim]
-        sim = 'Id,Rating\n' + '\n'.join(sim)
+    lengths = normalized_matrix.apply(np.linalg.norm, axis=1).to_numpy()
 
-        sim_writer.write(sim)
+    print("Creating similarity matrix")
 
-    similarity_matrix = pd.DataFrame(similarity_matrix)
+    # normalized_matrix = normalized_matrix.to_numpy()
+    # sim_matrix = np.ndarray((normalized_matrix.shape[0], normalized_matrix.shape[0]))
+    #
+    # for i, x in enumerate(normalized_matrix):
+    #     for j, y in enumerate(normalized_matrix):
+    #         if i <= j:
+    #             sim_matrix[i][j] = np.dot(x, y) / (lengths[i] * lengths[j])
+    #
+    # end = time.perf_counter()
+    # print("Time taken: ", round(end - start), " seconds")
+    #
+    # with open(similarity_file, 'w') as sim_writer:
+    #     sim = [map(str, row) for row in sim_matrix]
+    #     sim = [','.join(row) for row in sim]
+    #     sim = '\n'.join(sim)
+    #     sim_writer.write(sim)
+    #
+    # print(sim_matrix)
+    #
+    # similarity_matrix = pd.DataFrame(similarity_matrix)
     # print(similarity_matrix)
+
+    sim_matrix = similarity
+
+    print(sim_matrix)
+
+
 
     # k = 2
     # user = 1
@@ -144,12 +160,12 @@ def predict_random(movies, users, ratings, predictions):
 # predictions = predict_random(movies_description, users_description, ratings_description, predictions_description)
 predictions = predict_collaborative_filtering(movies_description, users_description, ratings_description, predictions_description)
 
-#Save predictions, should be in the form 'list of tuples' or 'list of lists'
-with open(submission_file, 'w') as submission_writer:
-    #Formates data
-    predictions = [map(str, row) for row in predictions]
-    predictions = [','.join(row) for row in predictions]
-    predictions = 'Id,Rating\n'+'\n'.join(predictions)
-    
-    #Writes it dowmn
-    submission_writer.write(predictions)
+# #Save predictions, should be in the form 'list of tuples' or 'list of lists'
+# with open(submission_file, 'w') as submission_writer:
+#     #Formates data
+#     predictions = [map(str, row) for row in predictions]
+#     predictions = [','.join(row) for row in predictions]
+#     predictions = 'Id,Rating\n'+'\n'.join(predictions)
+#
+#     #Writes it dowmn
+#     submission_writer.write(predictions)
