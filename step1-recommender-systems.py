@@ -46,19 +46,20 @@ def predict_collaborative_filtering(movies, users, ratings, predictions):
     merged = pd.merge(ratings, mean, on='userID')
     merged['rating'] -= merged['mean']
     merged.drop(columns=['mean'])
-    normalized_matrix = merged.pivot_table(index='userID', values='rating', columns='movieID').fillna(0).astype('float64')
+    norm_data = merged.pivot_table(index='userID', values='rating', columns='movieID')
+    normalized_matrix = pd.DataFrame(data=norm_data, index=users['userID'], columns=movies['movieID']).fillna(0).astype('float64')
 
-    # matrix.set_index('userID')
-
-    # normalized_matrix = normalized_matrix.to_numpy()[:3]
-    start = time.perf_counter()
-
-    print("Calculating lengths")
-
-    lengths = normalized_matrix.apply(np.linalg.norm, axis=1).to_numpy()
-
-    print("Creating similarity matrix")
-
+    # print(normalized_matrix)
+    #
+    # start = time.perf_counter()
+    #
+    # print("Calculating lengths")
+    #
+    # lengths = normalized_matrix.apply(np.linalg.norm, axis=1).to_numpy()
+    # print(lengths)
+    #
+    # print("Creating similarity matrix")
+    #
     # normalized_matrix = normalized_matrix.to_numpy()
     # sim_matrix = np.ndarray((normalized_matrix.shape[0], normalized_matrix.shape[0]))
     #
@@ -77,11 +78,9 @@ def predict_collaborative_filtering(movies, users, ratings, predictions):
     #     sim_writer.write(sim)
     #
     # print(sim_matrix)
-    #
-    # similarity_matrix = pd.DataFrame(similarity_matrix)
-    # print(similarity_matrix)
 
     sim_matrix = similarity
+    print(sim_matrix.head())
 
     sim_matrix.index = normalized_matrix.index
     sim_matrix.columns = normalized_matrix.index
