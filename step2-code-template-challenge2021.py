@@ -65,7 +65,6 @@ def item_item_cf(movies, users, ratings, predictions):
 
     # similarity = calculate_similarity_matrix(normalized_matrix)
 
-
     sim_matrix = similarity
 
     sim_matrix.index = normalized_matrix.index
@@ -76,7 +75,7 @@ def item_item_cf(movies, users, ratings, predictions):
 
     sim_matrix = pd.DataFrame(np_sim_matrix, index=sim_matrix.index,
                               columns=sim_matrix.columns)
-    k = 5
+    k = 10
 
     submission = []
 
