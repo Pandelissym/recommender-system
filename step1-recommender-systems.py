@@ -23,14 +23,14 @@ users_file = './data/users.csv'
 ratings_file = './data/ratings.csv'
 predictions_file = './data/predictions.csv'
 submission_file = './data/submission.csv'
-similarity_file = './data/similarity.csv'
+similarity_file = 'matrices/user_user_cf_similarity.csv'
 # Read the data using pandas
 
 movies_description = pd.read_csv(movies_file, delimiter=';', dtype={'movieID':'int', 'year':'int', 'movie':'str'}, names=['movieID', 'year', 'movie'])
 users_description = pd.read_csv(users_file, delimiter=';', dtype={'userID':'int', 'gender':'str', 'age':'int', 'profession':'int'}, names=['userID', 'gender', 'age', 'profession'])
 ratings_description = pd.read_csv(ratings_file, delimiter=';', dtype={'userID':'int', 'movieID':'int', 'rating':'int'}, names=['userID', 'movieID', 'rating'])
 predictions_description = pd.read_csv(predictions_file, delimiter=';', names=['userID', 'movieID'], header=None)
-similarity = pd.read_csv(similarity_file, delimiter=',', header=None)
+# similarity = pd.read_csv(similarity_file, delimiter=',', header=None)
 #####
 ##
 ## COLLABORATIVE FILTERING
@@ -49,35 +49,35 @@ def predict_collaborative_filtering(movies, users, ratings, predictions):
     norm_data = merged.pivot_table(index='userID', values='rating', columns='movieID')
     normalized_matrix = pd.DataFrame(data=norm_data, index=users['userID'], columns=movies['movieID']).fillna(0).astype('float64')
 
-    # print(normalized_matrix)
-    #
-    # start = time.perf_counter()
-    #
-    # print("Calculating lengths")
-    #
-    # lengths = normalized_matrix.apply(np.linalg.norm, axis=1).to_numpy()
-    # print(lengths)
-    #
-    # print("Creating similarity matrix")
-    #
-    # normalized_matrix = normalized_matrix.to_numpy()
-    # sim_matrix = np.ndarray((normalized_matrix.shape[0], normalized_matrix.shape[0]))
-    #
-    # for i, x in enumerate(normalized_matrix):
-    #     for j, y in enumerate(normalized_matrix):
-    #         if i <= j:
-    #             sim_matrix[i][j] = np.dot(x, y) / (lengths[i] * lengths[j])
-    #
-    # end = time.perf_counter()
-    # print("Time taken: ", round(end - start), " seconds")
-    #
-    # with open(similarity_file, 'w') as sim_writer:
-    #     sim = [map(str, row) for row in sim_matrix]
-    #     sim = [','.join(row) for row in sim]
-    #     sim = '\n'.join(sim)
-    #     sim_writer.write(sim)
-    #
-    # print(sim_matrix)
+    print(normalized_matrix)
+
+    start = time.perf_counter()
+
+    print("Calculating lengths")
+
+    lengths = normalized_matrix.apply(np.linalg.norm, axis=1).to_numpy()
+    print(lengths)
+
+    print("Creating similarity matrix")
+
+    normalized_matrix = normalized_matrix.to_numpy()
+    sim_matrix = np.ndarray((normalized_matrix.shape[0], normalized_matrix.shape[0]))
+
+    for i, x in enumerate(normalized_matrix):
+        for j, y in enumerate(normalized_matrix):
+            if i <= j:
+                sim_matrix[i][j] = np.dot(x, y) / (lengths[i] * lengths[j])
+
+    end = time.perf_counter()
+    print("Time taken: ", round(end - start), " seconds")
+
+    with open(similarity_file, 'w') as sim_writer:
+        sim = [map(str, row) for row in sim_matrix]
+        sim = [','.join(row) for row in sim]
+        sim = '\n'.join(sim)
+        sim_writer.write(sim)
+
+    print(sim_matrix)
 
     sim_matrix = similarity
     print(sim_matrix.head())
