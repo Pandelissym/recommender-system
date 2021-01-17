@@ -38,7 +38,7 @@ movies_description = pd.read_csv(movies_file, delimiter=';', names=['movieID', '
 users_description = pd.read_csv(users_file, delimiter=';', names=['userID', 'gender', 'age', 'profession'])
 ratings_description = pd.read_csv(ratings_file, delimiter=';', names=['userID', 'movieID', 'rating'])
 predictions_description = pd.read_csv(predictions_file, delimiter=';', names=['userID', 'movieID'])
-# similarity = pd.read_csv(similarity_file, delimiter=',', header=None)
+similarity = pd.read_csv(similarity_file, delimiter=',', header=None)
 
 def predict(movies, users, ratings, predictions):
     number_predictions = len(predictions)
@@ -75,6 +75,8 @@ def item_item_cf(movies, users, ratings, predictions):
 
     sim_matrix = pd.DataFrame(np_sim_matrix, index=sim_matrix.index,
                               columns=sim_matrix.columns)
+
+
     k = 10
 
     submission = []
